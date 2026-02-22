@@ -16,19 +16,22 @@ export default function App() {
     initTgUser()
 
     const checkAccess = async () => {
-      // Retry получения TG_ID до 10 раз с интервалом 100ms
-      for (let i = 0; i < 10; i++) {
+      for (let i = 0; i < 15; i++) {
         const id = initTgUser()
         if (id) break
-        await new Promise(r => setTimeout(r, 100))
+        await new Promise(r => setTimeout(r, 200))
       }
-      try {
-        const me = await api.getMe()
-        if (me.has_access) { setUser(me); setPhase("app") }
-        else setPhase("auth")
-      } catch {
-        setPhase("auth")
+      // Пробуем 3 раза если ошибка
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          const me = await api.getMe()
+          if (me.has_access) { setUser(me); setPhase("app"); return }
+          setPhase("auth"); return
+        } catch {
+          await new Promise(r => setTimeout(r, 500))
+        }
       }
+      setPhase("auth")
     }
 
     const t = setTimeout(checkAccess, 2300)
