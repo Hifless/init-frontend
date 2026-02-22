@@ -77,11 +77,26 @@ export function AuthScreen({ onActivated }) {
         setError("Открой приложение через Telegram бота")
         setLoading(false); return
       }
-      // Попробуем просто загрузить /me — может ключ уже активирован
-      const r = await fetch(`${BASE}/users/me?tg_id=${tgId}`)
-      if (r.ok) { onActivated(); return }
 
-      setError("Ключ не подошёл. Активируй через бота: /activate " + k)
+      // Сначала проверяем — может уже активирован через бота
+      const meR = await fetch(`${BASE}/users/me?tg_id=${tgId}`)
+      if (meR.ok) {
+        const me = await meR.json()
+        if (me.has_access) { onActivated(); return }
+      }
+
+      // Активируем ключ через API
+      const r = await fetch(`${BASE}/users/activate?tg_id=${tgId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: k }),
+      })
+      const data = await r.json()
+      if (r.ok && data.ok) {
+        onActivated()
+      } else {
+        setError(data.detail || "Ключ не подошёл")
+      }
     } catch {
       setError("Ошибка сети")
     } finally {
