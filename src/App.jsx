@@ -12,18 +12,26 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false)
 
   useEffect(() => {
-    if (window.Telegram?.WebApp) {
-      window.Telegram.WebApp.ready()
-      window.Telegram.WebApp.expand()
-    }
+    // Инициализируем Telegram WebApp сразу
     initTgUser()
-    const t = setTimeout(async () => {
+
+    const checkAccess = async () => {
+      // Retry получения TG_ID до 10 раз с интервалом 100ms
+      for (let i = 0; i < 10; i++) {
+        const id = initTgUser()
+        if (id) break
+        await new Promise(r => setTimeout(r, 100))
+      }
       try {
         const me = await api.getMe()
         if (me.has_access) { setUser(me); setPhase("app") }
         else setPhase("auth")
-      } catch { setPhase("auth") }
-    }, 2300)
+      } catch {
+        setPhase("auth")
+      }
+    }
+
+    const t = setTimeout(checkAccess, 2300)
     return () => clearTimeout(t)
   }, [])
 

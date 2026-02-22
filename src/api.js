@@ -4,13 +4,21 @@ let TG_ID = null
 
 export function initTgUser() {
   try {
-    const user = window.Telegram?.WebApp?.initDataUnsafe?.user
-    if (user?.id) TG_ID = user.id
+    const tg = window.Telegram?.WebApp
+    if (tg) {
+      tg.ready()
+      tg.expand()
+      const user = tg.initDataUnsafe?.user
+      if (user?.id) TG_ID = user.id
+    }
   } catch {}
   return TG_ID
 }
 
+export function getTgId() { return TG_ID }
+
 async function req(path, opts = {}) {
+  if (!TG_ID) initTgUser()
   const url = new URL(`${BASE}${path}`)
   if (TG_ID) url.searchParams.set("tg_id", TG_ID)
   const r = await fetch(url.toString(), {
