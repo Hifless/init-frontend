@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from "react"
 import { api, initTgUser } from "./api"
 import { SplashScreen, AuthScreen } from "./components/Screens"
 import ArbitrageTab from "./components/ArbitrageTab"
-import ChartsTab from "./components/ChartsTab"
 import { AlertsTab, PortfolioTab, TradesTab, SettingsModal } from "./components/OtherTabs"
 
 export default function App() {
@@ -16,22 +15,19 @@ export default function App() {
     initTgUser()
 
     const checkAccess = async () => {
-      for (let i = 0; i < 15; i++) {
+      // Retry получения TG_ID до 10 раз с интервалом 100ms
+      for (let i = 0; i < 10; i++) {
         const id = initTgUser()
         if (id) break
-        await new Promise(r => setTimeout(r, 200))
+        await new Promise(r => setTimeout(r, 100))
       }
-      // Пробуем 3 раза если ошибка
-      for (let attempt = 0; attempt < 3; attempt++) {
-        try {
-          const me = await api.getMe()
-          if (me.has_access) { setUser(me); setPhase("app"); return }
-          setPhase("auth"); return
-        } catch {
-          await new Promise(r => setTimeout(r, 500))
-        }
+      try {
+        const me = await api.getMe()
+        if (me.has_access) { setUser(me); setPhase("app") }
+        else setPhase("auth")
+      } catch {
+        setPhase("auth")
       }
-      setPhase("auth")
     }
 
     const t = setTimeout(checkAccess, 2300)
@@ -51,7 +47,6 @@ export default function App() {
 
   const TABS = [
     { id:"arb",       icon:"⚡", label:"Арбитраж" },
-    { id:"charts",    icon:"📈", label:"Графики"  },
     { id:"alerts",    icon:"🔔", label:"Алерты"   },
     { id:"portfolio", icon:"💼", label:"Портфель" },
     { id:"trades",    icon:"📋", label:"История"  },
@@ -81,7 +76,6 @@ export default function App() {
       </header>
       <main style={s.content}>
         {tab==="arb"       && <ArbitrageTab  user={user} />}
-        {tab==="charts"    && <ChartsTab     user={user} />}
         {tab==="alerts"    && <AlertsTab     user={user} />}
         {tab==="portfolio" && <PortfolioTab  user={user} />}
         {tab==="trades"    && <TradesTab     user={user} />}
