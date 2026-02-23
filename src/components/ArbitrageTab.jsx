@@ -211,9 +211,17 @@ function ItemDetail({ item, onClose, cnyUsd, usdRub }) {
         {/* PUMP warning */}
         {item.is_unstable && (
           <div style={d.pumpWarning}>
-            <div style={{ fontSize:11, fontWeight:700, marginBottom:4 }}>⚠️ Нестабильная цена</div>
+            <div style={{ fontSize:11, fontWeight:700, marginBottom:4 }}>⚠️ Нестабильная позиция</div>
             <div style={{ fontSize:10, color:"#ff9999", lineHeight:1.6 }}>
-              Цена выросла на {item.price_change_24h}% за 24 часа. Высокий риск — скин могли случайно купить по завышенной цене. Рекомендуем пропустить.
+              {item.unstable_reason === "low_supply_high_roi" &&
+                `Только ${item.sell_num} продавец на Buff при ROI ${item.best_roi.toFixed(0)}% — кто-то один выставил по нереальной цене. Реальный арбитраж маловероятен.`}
+              {item.unstable_reason === "abnormal_roi" &&
+                `ROI ${item.best_roi.toFixed(0)}% при ${item.sell_num} продавцах — аномально высокий показатель. Вероятно единичная завышенная сделка на площадке.`}
+              {item.unstable_reason === "no_demand" &&
+                `Покупателей: ${item.buy_num}. Мало спроса — продать по рыночной цене будет сложно.`}
+              {item.unstable_reason === "pump_24h" &&
+                `Цена выросла на ${item.price_change_24h}% за 24ч — классический pump. Высокий риск.`}
+              {!item.unstable_reason && "Нестабильные рыночные условия. Рекомендуем пропустить."}
             </div>
           </div>
         )}
@@ -369,7 +377,12 @@ export default function ArbitrageTab({ user }) {
                     <div style={s.skinName}>{item.name.length>20?item.name.slice(0,20)+"…":item.name}</div>
                     <div style={{ display:"flex", gap:3, marginTop:2, alignItems:"center" }}>
                       {item.is_unstable
-                        ? <span style={s.pumpBadge}>PUMP</span>
+                        ? <span style={s.pumpBadge}>{
+                            item.unstable_reason === "low_supply_high_roi" ? "⚠ 1 прод." :
+                            item.unstable_reason === "abnormal_roi"        ? "⚠ ROI↑↑" :
+                            item.unstable_reason === "no_demand"           ? "⚠ нет спроса" :
+                            "⚠ PUMP"
+                          }</span>
                         : LIQ_MAP[item.liquidity] && (
                           <span style={{ fontSize:8, color:LIQ_MAP[item.liquidity][0], border:`1px solid ${LIQ_MAP[item.liquidity][0]}22`, background:`${LIQ_MAP[item.liquidity][0]}11`, borderRadius:3, padding:"1px 4px" }}>
                             {LIQ_MAP[item.liquidity][1]}
