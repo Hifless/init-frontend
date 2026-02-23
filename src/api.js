@@ -61,3 +61,16 @@ export const api = {
   addTrade:       (body)         => req("/trades/", { method:"POST", body:JSON.stringify(body) }),
   deleteTrade:    (id)           => req(`/trades/${id}`, { method:"DELETE" }),
 }
+
+// BASE без /api — для image proxy
+const BASE_HOST = BASE.replace(/\/api$/, "")
+
+export function getImgUrl(iconUrl) {
+  if (!iconUrl) return null
+  // Новый формат: /api/img?p=PATH
+  if (iconUrl.startsWith("/api/img")) return BASE_HOST + iconUrl
+  // Старый формат: полный Steam CDN URL — проксируем через свой бэкенд
+  const steamMatch = iconUrl.match(/\/economy\/image\/([^/]+)/)
+  if (steamMatch) return `${BASE_HOST}/api/img?p=${encodeURIComponent(steamMatch[1])}`
+  return iconUrl
+}

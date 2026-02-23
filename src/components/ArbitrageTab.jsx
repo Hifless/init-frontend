@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react"
-import { api } from "../api"
+import { api, getImgUrl } from "../api"
 
 const LIQ_MAP = { high: ["#00ff87", "HIGH"], med: ["#ffd60a", "MED"], low: ["#ff4757", "LOW"] }
 const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
@@ -109,7 +109,7 @@ function ItemDetail({ item, onClose, cnyUsd, usdRub }) {
         <div style={d.hero}>
           <div style={d.heroImg}>
             {item.icon_url
-              ? <img src={item.icon_url} alt={item.name} style={{ width:"100%", height:"100%", objectFit:"contain" }}
+              ? <img src={getImgUrl(item.icon_url)} alt={item.name} style={{ width:"100%", height:"100%", objectFit:"contain" }}
                   onError={e => { e.target.style.display="none"; e.target.nextSibling.style.display="flex" }} />
               : null
             }
@@ -361,7 +361,7 @@ export default function ArbitrageTab({ user }) {
                 <div style={{ display:"flex", alignItems:"center", gap:8, overflow:"hidden", minWidth:0 }}>
                   <div style={s.imgWrap}>
                     {item.icon_url && (
-                      <img src={item.icon_url} alt="" style={{ width:"100%", height:"100%", objectFit:"contain" }}
+                      <img src={getImgUrl(item.icon_url)} alt="" style={{ width:"100%", height:"100%", objectFit:"contain" }}
                         onError={e=>e.target.remove()} />
                     )}
                   </div>
